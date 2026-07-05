@@ -160,12 +160,14 @@
   ];
 
   function knightOffsets() {
-    // Front/back knight jumps only (±2 rows, ±1 col) — no sideways-leaning jumps.
+    // Front/back knight jumps (±2 rows, ±1 col) plus a 1-square sidestep left/right.
     return [
       { dr: 2, dc: 1 },
       { dr: 2, dc: -1 },
       { dr: -2, dc: 1 },
       { dr: -2, dc: -1 },
+      { dr: 0, dc: 1 },
+      { dr: 0, dc: -1 },
     ];
   }
 
