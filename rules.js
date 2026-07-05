@@ -160,16 +160,12 @@
   ];
 
   function knightOffsets() {
-    // Omnidirectional knight move: all 8 combinations of (±1, ±2) / (±2, ±1).
+    // Front/back knight jumps only (±2 rows, ±1 col) — no sideways-leaning jumps.
     return [
       { dr: 2, dc: 1 },
       { dr: 2, dc: -1 },
       { dr: -2, dc: 1 },
       { dr: -2, dc: -1 },
-      { dr: 1, dc: 2 },
-      { dr: 1, dc: -2 },
-      { dr: -1, dc: 2 },
-      { dr: -1, dc: -2 },
     ];
   }
 

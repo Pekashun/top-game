@@ -285,10 +285,12 @@
     container.innerHTML = "";
     for (const key of Object.keys(upgrades)) {
       if (upgrades[key]) {
-        const span = document.createElement("span");
-        span.className = "badge";
-        span.textContent = Rules.UPGRADE_CATALOG[key].name;
-        container.appendChild(span);
+        const def = Rules.UPGRADE_CATALOG[key];
+        const badge = document.createElement("div");
+        badge.className = "badge";
+        badge.innerHTML =
+          `<span class="badge-name">${def.name}</span>` + `<span class="badge-desc">${def.desc}</span>`;
+        container.appendChild(badge);
       }
     }
   }

@@ -68,16 +68,26 @@ html, body {
 .status-upgrades {
   margin-top: 4px;
   display: flex;
+  flex-direction: column;
   gap: 4px;
-  flex-wrap: wrap;
-  min-height: 1.2em;
 }
 
 .status-upgrades .badge {
+  display: flex;
+  flex-direction: column;
   background: rgba(0, 0, 0, 0.08);
   border-radius: 6px;
-  padding: 1px 6px;
+  padding: 3px 6px;
+}
+
+.badge-name {
   font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.badge-desc {
+  font-size: 0.62rem;
+  color: #555;
 }
 
 .message-bar {
