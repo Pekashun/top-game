@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>陣取りシミュレーション</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>陣取りシミュレーション</h1>
+    <div class="turn-counter">ターン <span id="turnNumber">1</span> / <span id="turnMax">15</span></div>
+  </header>
+
+  <section class="status-panel">
+    <div class="status-card status-player">
+      <div class="status-name">🐰 うさぎ（あなた）</div>
+      <div class="status-resources">資源: <span id="playerResources">0</span></div>
+      <div class="status-upgrades" id="playerUpgradeBadges"></div>
+    </div>
+    <div class="status-card status-cpu">
+      <div class="status-name">🐦 シマエナガ（CPU）</div>
+      <div class="status-resources">資源: <span id="cpuResources">0</span></div>
+      <div class="status-upgrades" id="cpuUpgradeBadges"></div>
+    </div>
+  </section>
+
+  <div id="messageBar" class="message-bar"></div>
+
+  <div id="board" class="board"></div>
+
+  <section class="upgrade-panel" id="upgradePanel"></section>
+</div>
+
+<div id="resultScreen" class="result-overlay hidden">
+  <div class="result-modal">
+    <h2 id="resultTitle">結果</h2>
+    <p id="resultDetail"></p>
+    <button id="playAgainBtn">もう一度遊ぶ</button>
+  </div>
+</div>
+
+<script src="rules.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
