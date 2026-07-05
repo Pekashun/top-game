@@ -11,7 +11,6 @@
   const MAX_TURNS = 15;
   const NORMAL_HARVEST_VALUE = 1;
   const RICH_HARVEST_VALUE = 3;
-  const REGROWTH_DELAY_TURNS = 3;
   const NEST_INCOME_DIVISOR = 3;
   const LATE_TURN_CUTOFF = 11;
   const BUY_EAGERNESS = 0.5;
@@ -51,13 +50,13 @@
       baseCost: 8,
       effects: { flatCostDiscount: 1 },
     },
-    emptyRegrowth: {
-      id: "emptyRegrowth",
-      name: "からっぽ再生",
-      desc: `収穫したマスが${REGROWTH_DELAY_TURNS}ターン後に再び収穫できる`,
+    lightFooted: {
+      id: "lightFooted",
+      name: "身軽な足取り",
+      desc: "移動コストがかからなくなる",
       sides: ["player", "cpu"],
       baseCost: 8,
-      effects: { regrowthOnOwnHarvest: REGROWTH_DELAY_TURNS },
+      effects: { moveCostReduction: 1 },
     },
     hoppingDash: {
       id: "hoppingDash",
@@ -111,7 +110,7 @@
       name: "巣づくり上手",
       desc: "所有マス数に応じて毎ターン資源が自動で入る",
       sides: ["cpu"],
-      baseCost: 6,
+      baseCost: 8,
       effects: { passiveIncomePerTurn: { tilesPerResource: NEST_INCOME_DIVISOR } },
     },
     downyShield: {
@@ -119,7 +118,7 @@
       name: "わたげの盾",
       desc: "新しく陣地化したマスが敵の次の2ターンだけ守られる",
       sides: ["cpu"],
-      baseCost: 5,
+      baseCost: 6,
       effects: { shieldOnClaim: { turns: 2, against: "player" } },
     },
     wary: {
@@ -147,7 +146,7 @@
     "tailLure",
     "earDash",
     "frugalSavings",
-    "emptyRegrowth",
+    "lightFooted",
     "phantomLeap",
   ];
 
@@ -158,7 +157,7 @@
     "wary",
     "frugalSavings",
     "winterWisdom",
-    "emptyRegrowth",
+    "lightFooted",
   ];
 
   function knightOffsets() {
@@ -219,7 +218,7 @@
         const type = RESOURCE_CHAR_MAP[RESOURCE_LAYOUT_RAW[r][c]];
         row.push({
           owner: null,
-          resource: { type, harvested: false },
+          resource: { type },
           shieldedAgainst: null,
           shieldExpiresAfterTurn: null,
         });
@@ -229,7 +228,6 @@
 
     return {
       tiles,
-      regrowthQueue: [],
       turn: 1,
       phase: "player_turn",
       selectedTile: null,
@@ -264,9 +262,15 @@
     };
   }
 
+  function computeMoveCost(side, state) {
+    const mover = state.players[side];
+    const reduction = aggregateNumericEffect(mover, "moveCostReduction", 0, (acc, r) => acc + r);
+    return Math.max(0, MOVE_COST - reduction);
+  }
+
   function getLegalMoves(side, state) {
     const mover = state.players[side];
-    if (mover.resources < MOVE_COST) return [];
+    if (mover.resources < computeMoveCost(side, state)) return [];
     const offsets =
       mover.movePattern === "knight" ? knightOffsets() : silverOffsets(mover.forwardDir);
     const extraOffsets = [];
@@ -320,9 +324,10 @@
   function performMoveCycle(side, dest, state) {
     const mover = state.players[side];
     const opponentSide = oppositeSide(side);
+    const moveCost = computeMoveCost(side, state);
     mover.row = dest.row;
     mover.col = dest.col;
-    mover.resources -= MOVE_COST;
+    mover.resources -= moveCost;
 
     const tile = state.tiles[dest.row][dest.col];
     const wasOpponentOwned = tile.owner === opponentSide;
@@ -334,26 +339,20 @@
       row: dest.row,
       col: dest.col,
       resourceType,
-      moveCost: MOVE_COST,
+      moveCost,
       harvested: false,
       harvestValue: 0,
       recaptureBonus: 0,
       neighborsClaimed: [],
     };
 
-    if (resourceType !== "none" && !tile.resource.harvested) {
+    if (resourceType !== "none") {
       let value = resourceType === "rich" ? RICH_HARVEST_VALUE : NORMAL_HARVEST_VALUE;
       value = aggregateNumericEffect(mover, "harvestMultiplier", value, (acc, m) => acc * m);
       value = aggregateNumericEffect(mover, "flatHarvestBonus", value, (acc, b) => acc + b);
       mover.resources += value;
-      tile.resource.harvested = true;
       result.harvested = true;
       result.harvestValue = value;
-
-      const regrowDelay = aggregateNumericEffect(mover, "regrowthOnOwnHarvest", 0, (acc, d) => acc + d);
-      if (regrowDelay > 0) {
-        state.regrowthQueue.push({ row: dest.row, col: dest.col, dueTurn: state.turn + regrowDelay });
-      }
     }
 
     if (wasOpponentOwned) {
@@ -439,21 +438,6 @@
     return income;
   }
 
-  function advanceRegrowthQueue(state) {
-    const stillPending = [];
-    const regrown = [];
-    for (const entry of state.regrowthQueue) {
-      if (entry.dueTurn <= state.turn) {
-        state.tiles[entry.row][entry.col].resource.harvested = false;
-        regrown.push(entry);
-      } else {
-        stillPending.push(entry);
-      }
-    }
-    state.regrowthQueue = stillPending;
-    return regrown;
-  }
-
   function getWinner(state) {
     const counts = countTiles(state);
     if (counts.player > counts.cpu) return "player";
@@ -466,8 +450,8 @@
     const scored = legalMoves.map((move) => {
       const tile = state.tiles[move.row][move.col];
       let score;
-      if (tile.resource.type === "rich" && !tile.resource.harvested) score = 30;
-      else if (tile.resource.type === "normal" && !tile.resource.harvested) score = 15;
+      if (tile.resource.type === "rich") score = 30;
+      else if (tile.resource.type === "normal") score = 15;
       else if (tile.owner === opponentSide) score = 8;
       else if (tile.owner === null) score = 3;
       else score = 0;
@@ -512,6 +496,7 @@
     MAX_TURNS,
     MOVE_COST,
     STARTING_RESOURCES,
+    computeMoveCost,
     UPGRADE_CATALOG,
     PLAYER_UPGRADE_PRIORITY,
     CPU_UPGRADE_PRIORITY,
@@ -527,7 +512,6 @@
     countOwnedTiles,
     countTiles,
     applyPassiveIncome,
-    advanceRegrowthQueue,
     getWinner,
     chooseAiMove,
     decideTurnAction,

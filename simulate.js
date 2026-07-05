@@ -29,7 +29,6 @@ function playOneGame(rng) {
     runAiTurn("player", state, rng);
     runAiTurn("cpu", state, rng);
     state.turn += 1;
-    Rules.advanceRegrowthQueue(state);
   }
   const counts = Rules.countTiles(state);
   return { winner: Rules.getWinner(state), playerTiles: counts.player, cpuTiles: counts.cpu };

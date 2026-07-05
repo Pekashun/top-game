@@ -201,7 +201,6 @@
 
   function advanceTurnCounterAndContinue() {
     state.turn++;
-    Rules.advanceRegrowthQueue(state);
     if (state.turn > Rules.MAX_TURNS) {
       endGame();
     } else {
@@ -258,8 +257,8 @@
         else if (tile.owner === "cpu") classes.push("owner-cpu");
         else classes.push("owner-none");
 
-        if (!tile.resource.harvested && tile.resource.type === "normal") classes.push("resource-normal");
-        if (!tile.resource.harvested && tile.resource.type === "rich") classes.push("resource-rich");
+        if (tile.resource.type === "normal") classes.push("resource-normal");
+        if (tile.resource.type === "rich") classes.push("resource-rich");
 
         if (tile.shieldedAgainst && state.turn <= tile.shieldExpiresAfterTurn) {
           classes.push("shielded");
