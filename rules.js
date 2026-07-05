@@ -15,6 +15,8 @@
   const NEST_INCOME_DIVISOR = 3;
   const LATE_TURN_CUTOFF = 11;
   const BUY_EAGERNESS = 0.5;
+  const MOVE_COST = 1;
+  const STARTING_RESOURCES = 3;
 
   // Hand-authored resource layout, symmetric top/bottom and left/right.
   // '.' = none, 'n' = normal resource, 'r' = rich resource (center hotspot).
@@ -38,7 +40,7 @@
       name: "ざくざく収穫",
       desc: "収穫量が2倍になる",
       sides: ["player", "cpu"],
-      baseCost: 5,
+      baseCost: 8,
       effects: { harvestMultiplier: 2 },
     },
     frugalSavings: {
@@ -46,7 +48,7 @@
       name: "がっちり貯金",
       desc: "今後の強化コストが1安くなる",
       sides: ["player", "cpu"],
-      baseCost: 5,
+      baseCost: 8,
       effects: { flatCostDiscount: 1 },
     },
     emptyRegrowth: {
@@ -54,7 +56,7 @@
       name: "からっぽ再生",
       desc: `収穫したマスが${REGROWTH_DELAY_TURNS}ターン後に再び収穫できる`,
       sides: ["player", "cpu"],
-      baseCost: 5,
+      baseCost: 8,
       effects: { regrowthOnOwnHarvest: REGROWTH_DELAY_TURNS },
     },
     hoppingDash: {
@@ -62,7 +64,7 @@
       name: "ぴょんぴょんダッシュ",
       desc: "1ターンに2回行動できる",
       sides: ["player"],
-      baseCost: 18,
+      baseCost: 21,
       effects: { extraMovesPerTurn: 1 },
     },
     longJump: {
@@ -70,7 +72,7 @@
       name: "一足飛び",
       desc: "直進3マスジャンプが使えるようになる",
       sides: ["player"],
-      baseCost: 17,
+      baseCost: 20,
       effects: {
         extraMoveOffsets: [
           { dr: 3, dc: 0 },
@@ -85,7 +87,7 @@
       name: "しっぽふりふり陽動",
       desc: "着地マスの上下左右も同時に陣地化する（敵の陣地は奪えない）",
       sides: ["player"],
-      baseCost: 19,
+      baseCost: 22,
       effects: { claimOrthogonalNeighborsOnLanding: true },
     },
     earDash: {
@@ -93,7 +95,7 @@
       name: "みみダッシュ",
       desc: "資源収穫時に+1される",
       sides: ["player"],
-      baseCost: 6,
+      baseCost: 9,
       effects: { flatHarvestBonus: 1 },
     },
     phantomLeap: {
@@ -101,7 +103,7 @@
       name: "まぼろし跳躍",
       desc: "相手の「わたげの盾」を無視して移動できる",
       sides: ["player"],
-      baseCost: 8,
+      baseCost: 11,
       effects: { ignoresShield: true },
     },
     nestBuilder: {
@@ -109,7 +111,7 @@
       name: "巣づくり上手",
       desc: "所有マス数に応じて毎ターン資源が自動で入る",
       sides: ["cpu"],
-      baseCost: 3,
+      baseCost: 6,
       effects: { passiveIncomePerTurn: { tilesPerResource: NEST_INCOME_DIVISOR } },
     },
     downyShield: {
@@ -117,7 +119,7 @@
       name: "わたげの盾",
       desc: "新しく陣地化したマスが敵の次の2ターンだけ守られる",
       sides: ["cpu"],
-      baseCost: 2,
+      baseCost: 5,
       effects: { shieldOnClaim: { turns: 2, against: "player" } },
     },
     wary: {
@@ -125,7 +127,7 @@
       name: "ちょこちょこ警戒",
       desc: "敵の陣地を奪うと+3される",
       sides: ["cpu"],
-      baseCost: 2,
+      baseCost: 5,
       effects: { flatRecaptureBonus: 3 },
     },
     winterWisdom: {
@@ -133,7 +135,7 @@
       name: "越冬の知恵",
       desc: "ターンが進むほど強化コストが安くなる",
       sides: ["cpu"],
-      baseCost: 3,
+      baseCost: 6,
       effects: { turnScaledCostDiscount: { divisor: 5 } },
     },
   };
@@ -242,7 +244,7 @@
           col: 4,
           forwardDir: -1,
           movePattern: "knight",
-          resources: 0,
+          resources: STARTING_RESOURCES,
           upgrades: {},
           label: "うさぎ",
           emoji: "🐰",
@@ -253,7 +255,7 @@
           col: 4,
           forwardDir: 1,
           movePattern: "silver",
-          resources: 0,
+          resources: STARTING_RESOURCES,
           upgrades: {},
           label: "シマエナガ",
           emoji: "🐦",
@@ -264,6 +266,7 @@
 
   function getLegalMoves(side, state) {
     const mover = state.players[side];
+    if (mover.resources < MOVE_COST) return [];
     const offsets =
       mover.movePattern === "knight" ? knightOffsets() : silverOffsets(mover.forwardDir);
     const extraOffsets = [];
@@ -319,6 +322,7 @@
     const opponentSide = oppositeSide(side);
     mover.row = dest.row;
     mover.col = dest.col;
+    mover.resources -= MOVE_COST;
 
     const tile = state.tiles[dest.row][dest.col];
     const wasOpponentOwned = tile.owner === opponentSide;
@@ -330,6 +334,7 @@
       row: dest.row,
       col: dest.col,
       resourceType,
+      moveCost: MOVE_COST,
       harvested: false,
       harvestValue: 0,
       recaptureBonus: 0,
@@ -505,6 +510,8 @@
   return {
     BOARD_SIZE,
     MAX_TURNS,
+    MOVE_COST,
+    STARTING_RESOURCES,
     UPGRADE_CATALOG,
     PLAYER_UPGRADE_PRIORITY,
     CPU_UPGRADE_PRIORITY,

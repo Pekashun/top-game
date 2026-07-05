@@ -68,6 +68,7 @@
     } else {
       parts.push(`${mover.label}が移動しました。`);
     }
+    parts.push(`（移動コスト-${result.moveCost}）`);
     if (result.recaptureBonus > 0) {
       parts.push(`奪い返しボーナス+${result.recaptureBonus}`);
     }
