@@ -20,15 +20,15 @@
   // Hand-authored resource layout, symmetric top/bottom and left/right.
   // '.' = none, 'n' = normal resource, 'r' = rich resource (center hotspot).
   const RESOURCE_LAYOUT_RAW = [
-    ".n.....n.",
-    "n..n.n..n",
-    "..n...n..",
+    "n.n.n.n.n",
+    ".n.n.n.n.",
+    "n.n.n.n.n",
     ".n.rrr.n.",
-    "...rrr...",
+    "n..rrr..n",
     ".n.rrr.n.",
-    "..n...n..",
-    "n..n.n..n",
-    ".n.....n.",
+    "n.n.n.n.n",
+    ".n.n.n.n.",
+    "n.n.n.n.n",
   ];
 
   const RESOURCE_CHAR_MAP = { ".": "none", n: "normal", r: "rich" };
