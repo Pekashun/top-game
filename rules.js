@@ -15,7 +15,7 @@
   const LATE_TURN_CUTOFF = 11;
   const BUY_EAGERNESS = 0.5;
   const MOVE_COST = 1;
-  const STARTING_RESOURCES = 3;
+  const STARTING_RESOURCES = 5;
 
   // Hand-authored resource layout, symmetric top/bottom and left/right.
   // '.' = none, 'n' = normal resource, 'r' = rich resource (center hotspot).
