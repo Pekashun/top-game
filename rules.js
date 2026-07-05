@@ -12,7 +12,7 @@
   const NORMAL_HARVEST_VALUE = 1;
   const RICH_HARVEST_VALUE = 3;
   const REGROWTH_DELAY_TURNS = 3;
-  const NEST_INCOME_DIVISOR = 5;
+  const NEST_INCOME_DIVISOR = 3;
   const LATE_TURN_CUTOFF = 11;
   const BUY_EAGERNESS = 0.5;
 
@@ -83,7 +83,7 @@
     tailLure: {
       id: "tailLure",
       name: "しっぽふりふり陽動",
-      desc: "着地マスの上下左右も同時に陣地化する",
+      desc: "着地マスの上下左右も同時に陣地化する（敵の陣地は奪えない）",
       sides: ["player"],
       baseCost: 19,
       effects: { claimOrthogonalNeighborsOnLanding: true },
@@ -109,31 +109,31 @@
       name: "巣づくり上手",
       desc: "所有マス数に応じて毎ターン資源が自動で入る",
       sides: ["cpu"],
-      baseCost: 1,
+      baseCost: 3,
       effects: { passiveIncomePerTurn: { tilesPerResource: NEST_INCOME_DIVISOR } },
     },
     downyShield: {
       id: "downyShield",
       name: "わたげの盾",
-      desc: "新しく陣地化したマスが敵の次の1ターンだけ守られる",
+      desc: "新しく陣地化したマスが敵の次の2ターンだけ守られる",
       sides: ["cpu"],
-      baseCost: 1,
-      effects: { shieldOnClaim: { turns: 1, against: "player" } },
+      baseCost: 2,
+      effects: { shieldOnClaim: { turns: 2, against: "player" } },
     },
     wary: {
       id: "wary",
       name: "ちょこちょこ警戒",
-      desc: "敵の陣地を奪うと+2される",
+      desc: "敵の陣地を奪うと+3される",
       sides: ["cpu"],
       baseCost: 2,
-      effects: { flatRecaptureBonus: 2 },
+      effects: { flatRecaptureBonus: 3 },
     },
     winterWisdom: {
       id: "winterWisdom",
       name: "越冬の知恵",
       desc: "ターンが進むほど強化コストが安くなる",
       sides: ["cpu"],
-      baseCost: 2,
+      baseCost: 3,
       effects: { turnScaledCostDiscount: { divisor: 5 } },
     },
   };
@@ -285,7 +285,7 @@
       if (
         !ignoresShield &&
         tile.shieldedAgainst === side &&
-        tile.shieldExpiresAfterTurn === state.turn
+        state.turn <= tile.shieldExpiresAfterTurn
       ) {
         continue;
       }
@@ -362,6 +362,7 @@
         const nr = dest.row + dr;
         const nc = dest.col + dc;
         if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) continue;
+        if (state.tiles[nr][nc].owner === opponentSide) continue;
         claimTile(state, side, nr, nc, false);
         result.neighborsClaimed.push({ row: nr, col: nc });
       }
